@@ -1,3 +1,20 @@
+/*
+0.怎么存储着这种格式的输入 用string
+1.怎么找完全二叉树的根 找到不当儿子的节点
+2.判断的条件：1）每一层的个数2）最后一层节点的位置。
+都不是。用二叉树的形式遍历所有节点，用最大值下标值和节点数比较，来判断是否是平衡二叉树（太巧妙了！）。
+3.怎么保存二叉树的最后一个节点。
+遍历中保存：
+Void dfs(int root, int index){
+		if(index>maxn){
+Maxn=index;
+Ans=root;//保存下标最大的节点
+}
+If(tree[root].left!=-1)dfs(tree[root].left, index*2);
+If(tree[root].right!=-1)dfs(tree[root].right, index*2+1);
+}
+*/
+
 #include <iostream>
 using namespace std;
 struct node{
