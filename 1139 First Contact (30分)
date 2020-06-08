@@ -1,0 +1,53 @@
+#include<iostream>
+#include<vector>
+#include<string>
+#include<algorithm>
+#include<unordered_map>
+using namespace std;
+
+unordered_map<int, int>mat;
+vector<int>v[10005];
+struct node {
+	int a, b;
+};
+vector<node>ans;
+
+bool cmp(node x, node y) {
+	if (x.a != y.a)return x.a < y.a;
+	else return x.b < y.b;
+}
+
+int main() {
+	int n, m, k;
+	string a, b;
+	cin >> n >> m;
+	for (int i = 0; i < m; i++) {
+		cin >> a >> b;
+		if (a.size() == b.size()) {
+			v[abs(stoi(a))].push_back(abs(stoi(b)));
+			v[abs(stoi(b))].push_back(abs(stoi(a)));
+		}
+		mat[abs(stoi(a)) * 10000 + abs(stoi(b))] =
+			mat[abs(stoi(b)) * 10000 + abs(stoi(a))] = 1;
+	}
+	cin >> k;
+	for (int t = 0; t < k; t++) {
+		cin >> a >> b;
+		ans.clear();
+		for (int i = 0; i < v[abs(stoi(a))].size(); i++) {
+			for (int j = 0; j < v[abs(stoi(b))].size(); j++) {
+				int ta = abs(stoi(a)), tb = abs(stoi(b));
+				if (tb == v[abs(stoi(a))][i] || ta == v[abs(stoi(b))][j])continue;
+				if ( mat[v[ta][i] * 10000 + v[tb][j]] == 1) {
+					ans.push_back({ v[ta][i] ,v[tb][j] });
+				}
+			}
+		}
+		sort(ans.begin(), ans.end(), cmp);
+		printf("%d\n", ans.size());
+		for (int i = 0; i < ans.size(); i++) {
+			printf("%04d %04d\n", ans[i].a, ans[i].b);
+		}
+	}
+	return 0;
+}
