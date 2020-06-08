@@ -1,0 +1,88 @@
+/*
+看着像最短路径，其实不是。
+学习了https://blog.csdn.net/liuchuo/article/details/68925193中的方法。
+1 存储连接关系用哈希表，为防止键值重复，采用a*10000+b的方法，类似题目
+2 深搜结束的条件是节点数最少，或节点数等于最小节点数而换乘次数更少。
+3 输出时当当前线路与前一线路不同时换线，保存上一个换乘站。注意最后一个站不是换乘站。
+*/
+
+#include<cstdio>
+#include<vector>
+#include<unordered_map>
+#include<algorithm>
+using namespace std;
+
+unordered_map<int, int>line;
+vector<int>v[10005];
+vector<int>path, ans;
+bool vis[10005];
+int mincnt, mintransfer;
+
+int getTrancsfer() {
+	int preline = -1, trans = 0;
+	for (int i = 0; i < path.size() - 1; i++) {
+		if (line[path[i] * 10000 + path[i + 1]] != preline) {
+			preline = line[path[i] * 10000 + path[i + 1]];
+			trans++;
+		}
+	}
+	return trans - 1;
+}
+
+void dfs(int node, int end1, int cnt) {
+	if (node == end1 && (cnt < mincnt || (cnt == mincnt && getTrancsfer() < mintransfer))) {
+		ans = path;
+		mincnt = cnt;
+		mintransfer = getTrancsfer();
+	}
+	if (node == end1)return;
+	for (int i = 0; i < v[node].size(); i++) {
+		if (vis[v[node][i]] == false) {
+			path.push_back(v[node][i]);
+			vis[v[node][i]] = true;
+			dfs(v[node][i], end1, cnt + 1);
+			path.pop_back();
+			vis[v[node][i]] = false;
+		}
+	}
+}
+
+int main() {
+	int n, m, pre, id, k;
+	scanf("%d", &n);
+	for (int i = 0; i < n; i++) {
+		scanf("%d %d", &m, &pre);
+		for (int j = 1; j < m; j++) {
+			scanf("%d", &id);
+			v[pre].push_back(id);
+			v[id].push_back(pre);
+			line[pre * 10000 + id] = line[id * 10000 + pre] = i + 1;
+			pre = id;
+		}
+	}
+	scanf("%d", &k);
+	int st, ed;
+	for (int i = 0; i < k; i++) {
+		scanf("%d %d", &st, &ed);
+		mincnt = 999999;
+		mintransfer = 999999;
+		path.clear();
+		path.push_back(st);
+		fill(vis, vis + 10005, false);
+		vis[st] = true;
+		dfs(st, ed, 0);
+		printf("%d\n", mincnt);
+		int preline = 0, pretransfer = st;
+		for (int j = 1; j < ans.size(); j++) {
+			if (line[ans[j - 1] * 10000 + ans[j]] != preline) {
+				if (preline != 0) {
+					printf("Take Line#%d from %04d to %04d.\n", preline, pretransfer, ans[j - 1]);
+				}
+				preline = line[ans[j - 1] * 10000 + ans[j]];
+				pretransfer = ans[j - 1];
+			}
+		}
+		printf("Take Line#%d from %04d to %04d.\n", preline, pretransfer, ed);
+	}
+	return 0;
+}
