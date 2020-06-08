@@ -1,0 +1,59 @@
+/*
+一个双重循环判断当前团是否是连通的。
+再一个循环判断团以外顶点是否和团内每个顶点都相连。
+没有很复杂，按照题意来即可。
+*/
+
+#include<cstdio>
+#include<vector>
+using namespace std;
+
+int nv, ne, m, k;
+const int maxn = 205;
+int g[maxn][maxn];
+int main() {
+	scanf("%d %d", &nv, &ne);
+	int c1, c2;
+	for (int i = 0; i < ne; i++) {
+		scanf("%d %d",&c1, &c2);
+		g[c1][c2] = g[c2][c1] = 1;
+	}
+	scanf("%d", &m);
+	while (m--) {
+		scanf("%d", &k);
+		vector<int>v(k);
+		bool mark[maxn] = { false };
+		for (int i = 0; i < k; i++) {
+			scanf("%d", &v[i]); mark[v[i]] = true;
+		}
+		bool ans = true, semi = false;
+		for (int i = 0; i < k; i++) {
+			for (int j = 0; j < k && j!=i; j++) {
+				if (g[v[i]][v[j]] == 0 || g[v[j]][v[i]] == 0) {
+					ans = false;
+					break;
+				}
+			}
+		}
+		for (int i = 1; i <= nv ; i++) {
+			if (mark[i] == true)continue;
+			bool flag = true;
+			for (int j = 0; j < k; j++) {
+				if (g[i][v[j]] == 1)continue;
+				else {
+					flag = false;
+					break;
+				}
+			}
+			if (!flag)continue;
+			else {
+				semi = true;
+				break;
+			}
+		}
+		if (ans == false)printf("Not a Clique\n");
+		else if (semi)printf("Not Maximal\n");
+		else printf("Yes\n");
+	}
+	return 0;
+}
