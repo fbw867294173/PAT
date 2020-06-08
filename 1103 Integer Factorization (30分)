@@ -1,0 +1,49 @@
+#include<cstdio>
+#include<vector>
+#include<cmath>
+using namespace std;
+
+int n, k, p;
+int fac[25];
+
+vector<int>path, ans;
+
+int index = 0;
+void init() {
+	int num = 1;
+	for (; num <= n; index++) {
+		num = pow(index, p);
+		fac[index] = num;
+	}
+	index--;
+}
+
+
+int maxFacSum = -1;
+void dfs(int idx, int cnt, int sum, int facSum) {
+	if (idx<1 || cnt>k || sum>n)return;
+	if (sum == n && cnt ==k && (facSum > maxFacSum || facSum==maxFacSum && path>ans)) {
+		maxFacSum = facSum;
+		ans = path;
+		return;
+	}
+	path.push_back(idx);
+	dfs(idx, cnt + 1, sum + fac[idx], facSum + idx);
+	path.pop_back();
+	dfs(idx - 1, cnt, sum, facSum);
+}
+
+int main() {
+	scanf("%d %d %d", &n, &k, &p);
+	init();
+	dfs(index, 0, 0, 0);
+	if (ans.size() == 0)
+		printf("Impossible\n");
+	else {
+		printf("%d = %d^%d", n, ans[0], p);
+		for (int i = 1; i < ans.size(); i++) {
+			printf(" + %d^%d", ans[i], p);
+		}
+	}
+	return 0;
+}
