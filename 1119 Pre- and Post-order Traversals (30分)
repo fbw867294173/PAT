@@ -1,0 +1,68 @@
+/*
+用静态数组存储树结构更为方便。
+先序加后续无法确定一颗二叉树的原因在于，当某个根节点只有一棵子树时不知道是左子树还是右子树。
+这里我们先默认他是左子树。子树的根节点必是pre[prel+1]。找到它再后序中的位置，减去postl即为子树节点数。
+若num == prer-prel-1,那么只有一棵子树，即有不唯一的情况。
+*/
+
+#include<iostream>
+#include<vector>
+#include<cstdio>
+using namespace std;
+
+const int maxn = 35;
+
+struct node {
+	int left = -1, right = -1;
+}tree[maxn];
+
+int preorder[maxn], postorder[maxn];
+bool isunique = true;
+vector<int>inorder;
+
+void build(int prel, int prer, int postl, int postr) {
+	if (prel == prer) {
+		inorder.push_back(preorder[prel]);
+		return;
+	}
+	//找出子树根节点在后序中的位置
+	int k;
+	for (k = postl; k <= postr; k++) {
+		if (postorder[k] == preorder[prel + 1])
+			break;
+	}
+	//后续中根子树节点以左的节点均为子树节点。num表示子树的节点个数
+	//若只有一棵子树，那么可能在左或在右，存在不唯一的情况
+	//prer-prel-1表示子树所有的节点的个数和
+	int num = k - postl;
+	if (num == prer - prel - 1)
+		isunique = false;
+	//默认是左子树，便于处理中序序列
+	tree[prel].left = prel + 1;
+	//处理左子树
+	build(prel + 1, prel + 1 + num, postl, k);
+	//将当前根节点数值加入中序
+	inorder.push_back(preorder[prel]);
+	//小于说明有右子树
+	if (num < prer - prel - 1) {
+		//赋值右子树
+		tree[prel].right = prel + num + 2;
+		//处理右子树
+		build(prel + num + 2, prer,k + 1, postr - 1);
+	}
+}
+
+int main() {
+	int n;
+	cin >> n;
+	for (int i = 0; i < n; i++)cin >> preorder[i];
+	for (int i = 0; i < n; i++)cin >> postorder[i];
+	build(0, n - 1, 0, n - 1);
+	printf("%s\n", isunique ? "Yes" : "No");
+	for (int i = 0; i < inorder.size(); i++) {
+		if (i > 0)cout << " ";
+		cout << inorder[i];
+	}
+	cout << endl;
+	return 0;
+}
