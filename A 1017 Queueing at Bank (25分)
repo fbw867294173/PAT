@@ -1,0 +1,65 @@
+/*
+思路在排序后的模拟阶段卡住了，不知道如何表示K个窗口。
+本题开了一维整型数组存放每个窗口当前客户的服务结束时间，到了这个时间该窗口将空闲。
+每次要找出的是最早空闲的窗口，然后安排顾客过去。
+这里将问题转化，改为找出结束时间最短的窗口安排顾客过去，然后再分情况讨论。直接找出
+最早空闲窗口，模拟将变得很复杂。
+*/
+
+#include<cstdio>
+#include<algorithm>
+#include<vector>
+using namespace std;
+
+struct node {
+	int time;
+	int p,wait;
+}t;
+
+bool cmp(node a, node b) {
+	return a.time < b.time;
+}
+
+int main() {
+	int n, k;
+	scanf("%d %d", &n, &k);
+	vector<node>v;
+	int hh, mm, ss;
+  //设置开门和关门的时间
+	int begin = 8 * 3600, end = 17 * 3600;
+	for (int i = 0; i < n; i++) {
+		scanf("%d:%d:%d %d", &hh, &mm, &ss, &t.p);
+		t.time = hh * 3600 + mm * 60 + ss;
+    //关门后的顾客不应该再服务
+		if (t.time < end) {
+    //题目中给出一位顾客的服务时间不超过一小时
+			if (t.p > 60)t.p = 60;
+			t.p *= 60;
+			v.push_back(t);
+		}
+	}
+	n = v.size();
+	sort(v.begin(), v.end(),cmp);
+	double sumtime = 0;
+	vector<int>endTime(k, begin);
+	for (int i = 0; i < n; i++) {
+  //找出结束服务时间最早的窗口
+		int index = 0, minEndTime = 0x7ffffff;
+		for (int j = 0; j < k; j++) {
+			if (endTime[j] < minEndTime) {
+				minEndTime = endTime[j];
+				index = j;
+			}
+		}
+    //安排顾客去。若去时窗口空闲，则开始服务，否则要计算总的等待时间
+    //两种情况都要更新窗口时间的值
+		if (endTime[index] < v[i].time)
+			endTime[index] = v[i].time + v[i].p;
+		else {
+			sumtime += endTime[index] - v[i].time;
+			endTime[index] += v[i].p;
+		}
+	}
+	printf("%.1lf\n", sumtime / 60 / n);
+	return 0;
+}
