@@ -1,0 +1,97 @@
+/*
+做题过程中发现第五个条件不好判断。
+如果要对每个顶点都dfs一遍判断，势必会超时（频繁计算重复的子内容）。
+还是利用二叉树的性质，递归直接判断每个节点是否符合，不用存储每条路径上的黑色节点数。
+*/
+
+#include<iostream>
+#include<cmath>
+#include<vector>
+#include<algorithm>
+using namespace std;
+
+const int maxn = 100;
+
+struct node {
+	int l = -1, r = -1;
+	int val;
+	bool isred;
+};
+
+int cnt = 0;
+int k, n;
+vector<int>path;
+vector<node>tree;
+
+int getnum(int t) {
+	if (t == -1)return 0;
+	int lnum = getnum(tree[t].l);
+	int rnum = getnum(tree[t].r);
+	return tree[t].isred ? max(lnum, rnum) : max(lnum, rnum) + 1;
+}
+
+bool check(int t) {
+	if (t == -1)return true;
+	int lnum = getnum(tree[t].l);
+	int rnum = getnum(tree[t].r);
+	if (lnum != rnum)return false;
+	return check(tree[t].l) && check(tree[t].r);
+}
+
+bool check2(int idx) {
+	if (idx == -1)return true;
+	if (tree[idx].isred) {
+		if (tree[idx].l != -1 && tree[tree[idx].l].isred)
+			return false;
+		if (tree[idx].r != -1 && tree[tree[idx].r].isred)
+			return false;
+	}
+	
+	return check2(tree[idx].l) && check2(tree[idx].r);
+}
+
+int insert(int t, int x, bool red) {
+	if (t == -1) {
+		tree[cnt].val = x;
+		tree[cnt].isred = red;
+		return cnt++;
+	}
+	if (x < tree[t].val) {
+		tree[t].l = insert(tree[t].l, x,red);
+	}
+	else {
+		tree[t].r = insert(tree[t].r, x,red);
+	}
+	return t;
+}
+
+int main() {
+	
+	cin >> k;
+	int num;
+	while (k--) {
+		cin >> n;
+		int root = -1;
+		cnt = 0;
+		tree.clear();
+		tree.resize(n);
+		for (int i = 0; i < n; i++)
+		{
+			//插入根节点建树
+			cin >> num;
+			root = insert(root, abs(num), num < 0);
+		}
+		bool ans = true;
+		//判断根是不是黑的
+		if (tree[root].isred) {
+			cout << "No" << endl;
+			continue;
+		}
+		else {
+			ans = ans && check2(root) && check(root);
+			if (!ans)cout << "No" << endl;
+			else cout << "Yes" << endl;
+		}
+	}
+	return 0;
+}
