@@ -1,0 +1,61 @@
+/*
+思路不难想到，每插入一个新数据，则按顺序重新排序。选取前min(ans.size(),k)个数据输出。
+因为涉及多次插入和排序，自然想到用set存储，底层红黑树效率更高。
+但访问set时不能修改列表中的值，所以要有一些辅助操作：
+  1 结构体中重载比较运算符。这样可实现有序插入结构体。
+  2 为满足set中 count 和 find 函数的操作，定义全局数组保存每个数字出现次数的副本。
+  3 修改值时要先删除再插入，因为set中元素不是可修改的左值。
+*/
+
+#include<iostream>
+#include<set>
+#include<algorithm>
+using namespace std;
+
+
+struct node {
+	int num;
+	int cnt;
+
+  //重载运算符
+	bool operator <(const node & a)const {
+		if (cnt != a.cnt)return cnt > a.cnt;
+		else return num < a.num;
+	}
+
+};
+
+const int maxn = 50000 + 5;
+//副本保存
+int vis[maxn];
+int main() {
+	int n, k;
+	cin >> n >> k;
+	int id;
+	cin >> id;
+	set<node>v;
+	v.insert({ id,1 });
+	vis[id] = 1;
+	for (int i = 0; i < n - 1; i++) {
+		cin >> id;
+		printf("%d:", id);
+		int bound = min((int)v.size(), k);
+		for (auto it : v) {
+			if (bound == 0)break;
+			cout << " " << it.num;
+			bound--;
+		}
+		cout << endl;
+		if(vis[id]==0)v.insert({ id,1 });
+		else {
+      //更新集合种数据的计数
+			auto pos = v.find({ id, vis[id] });
+			int id = pos->num;
+			int cnt = pos->cnt + 1;
+			v.erase(pos);
+			v.insert({ id, cnt });
+		}
+		vis[id]++;
+	}
+	return 0;
+}
