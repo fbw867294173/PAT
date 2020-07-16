@@ -1,0 +1,119 @@
+/*
+题目不难，需要先做并查集，再做统计排序。
+坑点在于一些人的id并没有出现在输入id中，而是作为父母或子女id出现，统计时若不注意会遗漏。
+使用Bool数组记录所有出现过的Id,再分成两部分分别进行统计即可。代码如下：
+*/
+
+#include<iostream>
+#include<vector>
+#include<unordered_map>
+#include<algorithm>
+using namespace std;
+
+const int maxn = 10000 + 5;
+int father[maxn];
+
+//保存每行输入信息的结构体
+struct node {
+	int id, fid, mid, mesate, area;
+	vector<int>child;
+}v[1005];
+
+//保存统计结果的结构体
+struct resNode {
+	int id, m;
+	int sets, area;
+	double avgsets, avgarea;
+}tmp;
+
+bool cmp(resNode &a, resNode &b) {
+	if (a.avgarea != b.avgarea)return a.avgarea > b.avgarea;
+	else return a.id < b.id;
+}
+
+int findFather(int x) {
+	int a = x;
+	while (x != father[x])
+		x = father[x];
+	while (a != father[a]) {
+		int z = a;
+		a = father[a];
+		father[z] = x;
+	}
+	return x;
+}
+
+void myUnion(int a, int b) {
+	int fa = findFather(a);
+	int fb = findFather(b);
+  //选取较小的数作为根
+	if (fa <= fb)
+		father[fb] = fa;
+	else
+		father[fa] = fb;
+}
+
+//标识所有出现过的id
+bool vis[maxn];
+
+int main() {
+	for (int i = 0; i < maxn; i++)
+		father[i] = i;
+	int n, k, child;
+	cin >> n;
+	for (int i = 0; i < n; i++) {
+		cin >> v[i].id >> v[i].fid >> v[i].mid;
+		vis[v[i].id] = true;
+		if (v[i].fid != -1) {
+			myUnion(v[i].id, v[i].fid);
+			vis[v[i].fid] = true;
+		}
+		if (v[i].mid != -1) {
+			myUnion(v[i].id, v[i].mid);
+			vis[v[i].mid] = true;
+		}
+		cin >> k;
+		while (k--) {
+			cin >> child;
+			myUnion(v[i].id, child);
+			v[i].child.push_back(child);
+			vis[child] = true;
+		}
+		cin >> v[i].mesate >> v[i].area;
+	}
+	unordered_map<int, resNode>mm;
+	for (int i = 0; i < n; i++) {
+  //第一批处理作为输入主键的Id
+		int root = findFather(v[i].id);
+		mm[root].id = root;
+		mm[root].m++;
+		mm[root].area += v[i].area;
+		mm[root].sets += v[i].mesate;
+		vis[v[i].id] = false;
+	}
+
+	for (int i = 0; i < maxn; i++) {
+  //第二批处理作为父母或子女节点的id。注意这里可能和前一个循环有重合。
+  //故前一个循环统计后要置vis[v[i].id]为false
+		if (vis[i]) {
+			int root = findFather(i);
+			mm[root].m++;
+		}
+	}
+	vector<resNode>ans;
+  //加入数组并排序
+	for (auto it : mm) {
+		tmp.id = it.first;
+		tmp.m = it.second.m;
+		tmp.avgarea = it.second.area*1.0 / it.second.m;
+		tmp.avgsets = it.second.sets*1.0 / it.second.m;
+		ans.push_back(tmp);
+	}
+	sort(ans.begin(), ans.end(), cmp);
+	cout << ans.size() << endl;
+  //输出时id格式为4位整数，必须留意
+	for (int i = 0; i < ans.size(); i++) {
+		printf("%04d %d %.3lf %.3lf\n", ans[i].id, ans[i].m, ans[i].avgsets, ans[i].avgarea);
+	}
+	return 0;
+}
