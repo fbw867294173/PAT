@@ -1,0 +1,121 @@
+/*
+很普通的一道最短路径题目，但测试点2始终过不去。
+浏览别人博客后找到原因，自己也记录一下，防止再出错。
+设终点为end，pre[end]记录的是所有顶点到end的最短路径数，而非起点到终点的最短路径数，所以要用额外的全局变量记录路径数。
+进一步的，dijkstra求得的是单节点到其他所有节点的最短路径。
+代码如下：
+*/
+
+#include<iostream>
+#include<unordered_map>
+#include<vector>
+#include<string>
+#include<algorithm>
+using namespace std;
+
+const int maxn = 205;
+const int inf = 0x7ffffff;
+int g[maxn][maxn];
+vector<int>pre[maxn], path, ans;
+unordered_map<string, int>mmsi;
+unordered_map<int, string>mmis;
+
+int happy[maxn];
+int vis[maxn], cost[maxn];
+int roadCnt = 0;
+
+void dij(int st, int n) {
+	fill(cost, cost + maxn, inf);
+	fill(vis, vis + maxn, 0);
+	cost[st] = 0;
+	for (int i = 0; i < n; i++) {
+		int u = -1, minn = inf;
+		for (int j = 0; j < n; j++){
+			if (vis[j] == 0 && cost[j] < minn) {
+				minn = cost[j];
+				u = j;
+			}
+		}
+		if (u == -1)return;
+		vis[u] = 1;
+		for (int v = 0; v < n; v++) {
+			if (vis[v] == 0 && g[u][v] != inf) {
+				if (cost[u] + g[u][v] < cost[v]) {
+					cost[v] = g[u][v] + cost[u];
+					pre[v].clear();
+					pre[v].push_back(u);
+				}
+				else if (cost[u] + g[u][v] == cost[v]) {
+					pre[v].push_back(u);
+				}
+			}
+		}
+	}
+}
+
+double maxAvgHappy = 0, maxHappy = 0;
+
+double getAvgHappy() {
+	double sum = 0;
+	for (int i = 0; i < path.size(); i++) {
+		sum += happy[path[i]];
+	}
+	return sum / (path.size() - 1);
+}
+void dfs(int u, int sum, string st) {
+	if (u == mmsi[st]) {
+		roadCnt++;//这里统计路径数
+		path.push_back(u);
+		sum += happy[u];
+		if (sum>maxHappy || sum==maxAvgHappy && getAvgHappy()>maxAvgHappy) {
+			maxHappy = sum;
+			maxAvgHappy = getAvgHappy();
+			ans = path;
+		}
+		sum -= happy[u];
+		path.pop_back();
+		return;
+	}
+	path.push_back(u);
+	for (int i = 0; i < pre[u].size(); i++) {
+		int v = pre[u][i];
+		dfs(v, sum+happy[u], st);
+	}
+	path.pop_back();
+}
+
+int main() {
+	fill(g[0], g[0] + maxn * maxn, inf);
+	int n, k, cnt = 0, hap, tcost;
+	cin >> n >> k;
+	string st, city;
+	cin >> st;
+	mmsi[st] = cnt;
+	mmis[cnt++] = st;
+
+	for (int i = 0; i < n - 1; i++) {
+		cin >> city >> hap;
+		mmsi[city] = cnt;
+		mmis[cnt] = city;
+		happy[cnt++] = hap;
+	}
+
+	string c1, c2;
+	for (int i = 0; i < k; i++) {
+		cin >> c1 >> c2 >> tcost;
+		g[mmsi[c1]][mmsi[c2]] = g[mmsi[c2]][mmsi[c1]] = tcost;
+	}
+	
+	dij(mmsi[st], n);
+	int end = mmsi["ROM"];
+	dfs(end, 0, st);
+	
+  //注意不能输出pre[end].size()
+	cout << roadCnt << " " << cost[end] << " " << maxHappy << " " << (int)maxAvgHappy << endl;
+	reverse(ans.begin(), ans.end());
+	for (int i = 0; i < ans.size(); i++) {
+		if (i > 0)cout << "->";
+		cout << mmis[ans[i]];
+	}
+	return 0;
+}
